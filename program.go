@@ -15,22 +15,23 @@ import (
 )
 
 func main() {
-	jwk := map[string]string{}
-
+	var js []byte
+	var err error
 	if len(os.Args) == 2 {
-		js, err := ioutil.ReadFile(os.Args[1])
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v", err)
-			os.Exit(1)
-		}
-		json.Unmarshal([]byte(js), &jwk)
+		js, err = ioutil.ReadFile(os.Args[1])
 	} else {
-		js, err := ioutil.ReadAll(os.Stdin)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v", err)
-			os.Exit(1)
-		}
-		json.Unmarshal([]byte(js), &jwk)
+		js, err = ioutil.ReadAll(os.Stdin)
+	}
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v", err)
+		os.Exit(1)
+	}
+
+	jwk := map[string]string{}
+	err = json.Unmarshal(js, &jwk)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v", err)
+		os.Exit(1)
 	}
 
 	if jwk["kty"] != "RSA" {
@@ -38,7 +39,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// decode the base64 bytes for n
 	nb, err := base64.RawURLEncoding.DecodeString(jwk["n"])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v", err)
